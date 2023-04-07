@@ -7,6 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using System.Text.RegularExpressions;
+
+
+// TODO: Aseprite export to vid script...
+// https://github.com/redboyrave/Aseprite-GB-Exporter/blob/main/gb-export.lua
 
 
 namespace PGImageTool
@@ -146,6 +151,65 @@ namespace PGImageTool
         {
             StatusLabel.Text = "";
             ClearStatustimer.Stop();
+        }
+
+        private void MakeVideo_Click(object sender, EventArgs e)
+        {
+            // open the output file with .vid extension.
+            string basename = SrcFilesListView.Items[0].Text;
+            basename = Path.ChangeExtension(basename,null);
+            basename = Regex.Replace(basename, @"\d+$", "");  // \d+$ matches one or more digits (\d) at the end of the string ($),
+            string vidname = basename + ".vid";
+
+            // TODO - sort the listview into ascending order?
+            //SrcFilesListView.Sorting = SortOrder.Ascending;
+            //SrcFilesListView.Sort();
+            int w = 0;
+            int h = 0;
+            byte[] pixelbits = new byte[] { 0, 0, 0, 0 };
+
+            using (FileStream vidstream = new FileStream(vidname, FileMode.Create, FileAccess.Write))
+            {
+                // Loop over each frame and append the pixel data directly to the file
+                foreach (ListViewItem item in SrcFilesListView.Items)
+                {
+                    string imagename = item.Text;
+
+                    // open the file and read into memory
+                    using (Bitmap bitmap = new Bitmap(imagename))
+                    {
+                        // Let the first bitmap define the dimensions of the video (all frames must be the same size)
+                        if (w == 0)
+                        {
+                            w = bitmap.Width;
+                            h = bitmap.Height;
+                        }
+
+                        // Read w x h pixels from the image (use black for edge cases if we have incorrectly sized frames)
+                        for (int j = 0; j < h; ++j)
+                        {
+                            for (int i = 0; i < w; ++i)
+                            {
+                                Color pixel = Color.FromArgb(0, 0, 0, 0);
+                                if ((i < w) && (j < h))
+                                {
+                                    pixel = bitmap.GetPixel(i, j);
+                                }
+                                pixelbits[0] = pixel.B;
+                                pixelbits[1] = pixel.G;
+                                pixelbits[2] = pixel.R;
+                                pixelbits[3] = pixel.A;
+
+                                vidstream.Write(pixelbits, 0, 4);
+                            }
+                        }
+                    }
+                }
+            }
+            StatusLabel.Text = "Generated Video:" + vidname;
+            StatusLabel.Visible = true;
+            ClearStatustimer.Stop();
+            ClearStatustimer.Start();
         }
     }
 }
