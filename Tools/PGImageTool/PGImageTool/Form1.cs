@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
 
 
 // TODO: Aseprite export to vid script...
@@ -153,15 +154,29 @@ namespace PGImageTool
             ClearStatustimer.Stop();
         }
 
+        public static byte[] StructToByteArray<T>(T obj) where T : struct
+        {
+            int size = Marshal.SizeOf(obj);
+            byte[] byteArray = new byte[size];
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+
+            Marshal.StructureToPtr(obj, ptr, true);
+            Marshal.Copy(ptr, byteArray, 0, size);
+            Marshal.FreeHGlobal(ptr);
+
+            return byteArray;
+        }
+
+
         private void MakeVideo_Click(object sender, EventArgs e)
         {
             // open the output file with .vid extension.
             string basename = SrcFilesListView.Items[0].Text;
             basename = Path.ChangeExtension(basename,null);
             basename = Regex.Replace(basename, @"\d+$", "");  // \d+$ matches one or more digits (\d) at the end of the string ($),
-            string vidname = basename + ".vid";
+            string vidname = basename + ".fxv";
 
-            // TODO - sort the listview into ascending order?
+            // sort the listview into ascending order?
             //SrcFilesListView.Sorting = SortOrder.Ascending;
             //SrcFilesListView.Sort();
             int w = 0;
@@ -179,10 +194,15 @@ namespace PGImageTool
                     using (Bitmap bitmap = new Bitmap(imagename))
                     {
                         // Let the first bitmap define the dimensions of the video (all frames must be the same size)
+                        // We write the header into the FXV file here as well
                         if (w == 0)
                         {
                             w = bitmap.Width;
                             h = bitmap.Height;
+
+                            FXVHeader header = new FXVHeader((ushort)w, (ushort)h);
+                            byte[] headerbytes = StructToByteArray(header);
+                            vidstream.Write(headerbytes,0,headerbytes.Length);
                         }
 
                         // Read w x h pixels from the image (use black for edge cases if we have incorrectly sized frames)
@@ -207,6 +227,60 @@ namespace PGImageTool
                 }
             }
             StatusLabel.Text = "Generated Video:" + vidname;
+            StatusLabel.Visible = true;
+            ClearStatustimer.Stop();
+            ClearStatustimer.Start();
+        }
+
+        private void Make_FXI_Button_Click(object sender, EventArgs e)
+        {
+
+            byte[] pixelbits = new byte[] { 0, 0, 0, 0 };
+
+            // Loop over each frame and append the pixel data directly to the file
+            int count = SrcFilesListView.Items.Count;
+            foreach (ListViewItem item in SrcFilesListView.Items)
+            {
+                string imagename = item.Text;
+                string outname = Path.ChangeExtension(imagename, ".fxi");
+
+                using (FileStream imgstream = new FileStream(outname, FileMode.Create, FileAccess.Write))
+                {
+                    // open the file and read into memory
+                    using (Bitmap bitmap = new Bitmap(imagename))
+                    {
+                        // get the size of this bitmap
+                        int w = bitmap.Width;
+                        int h = bitmap.Height;
+
+                        // write the FXI header into the file
+                        FXIHeader header = new FXIHeader((ushort)w, (ushort)h);
+                        byte[] headerbytes = StructToByteArray(header);
+                        imgstream.Write(headerbytes, 0, headerbytes.Length);
+
+                        // Read pixels from the image and write them to the file.
+                        for (int j = 0; j < h; ++j)
+                        {
+                            for (int i = 0; i < w; ++i)
+                            {
+                                Color pixel = Color.FromArgb(0, 0, 0, 0);
+                                if ((i < w) && (j < h))
+                                {
+                                    pixel = bitmap.GetPixel(i, j);
+                                }
+                                pixelbits[0] = pixel.B;
+                                pixelbits[1] = pixel.G;
+                                pixelbits[2] = pixel.R;
+                                pixelbits[3] = pixel.A;
+
+                                imgstream.Write(pixelbits, 0, 4);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            StatusLabel.Text = "Generated " + count.ToString() + "fxi files";
             StatusLabel.Visible = true;
             ClearStatustimer.Stop();
             ClearStatustimer.Start();

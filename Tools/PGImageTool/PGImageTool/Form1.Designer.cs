@@ -40,6 +40,7 @@ namespace PGImageTool
             this.StatusLabel = new System.Windows.Forms.Label();
             this.ClearStatustimer = new System.Windows.Forms.Timer(this.components);
             this.VideoButton = new System.Windows.Forms.Button();
+            this.Make_FXI_Button = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // SelectImagesButton
@@ -92,7 +93,7 @@ namespace PGImageTool
             this.GenerateButton.Name = "GenerateButton";
             this.GenerateButton.Size = new System.Drawing.Size(104, 23);
             this.GenerateButton.TabIndex = 4;
-            this.GenerateButton.Text = "Generate";
+            this.GenerateButton.Text = "Generate Code";
             this.GenerateButton.UseVisualStyleBackColor = true;
             this.GenerateButton.Click += new System.EventHandler(this.GenerateButton_Click);
             // 
@@ -111,7 +112,7 @@ namespace PGImageTool
             // 
             this.StatusLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.StatusLabel.AutoSize = true;
-            this.StatusLabel.Location = new System.Drawing.Point(244, 419);
+            this.StatusLabel.Location = new System.Drawing.Point(388, 419);
             this.StatusLabel.Name = "StatusLabel";
             this.StatusLabel.Size = new System.Drawing.Size(138, 13);
             this.StatusLabel.TabIndex = 5;
@@ -130,15 +131,27 @@ namespace PGImageTool
             this.VideoButton.Name = "VideoButton";
             this.VideoButton.Size = new System.Drawing.Size(115, 23);
             this.VideoButton.TabIndex = 6;
-            this.VideoButton.Text = "MakeVideo";
+            this.VideoButton.Text = "Make FXV";
             this.VideoButton.UseVisualStyleBackColor = true;
             this.VideoButton.Click += new System.EventHandler(this.MakeVideo_Click);
+            // 
+            // Make_FXI_Button
+            // 
+            this.Make_FXI_Button.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.Make_FXI_Button.Location = new System.Drawing.Point(244, 414);
+            this.Make_FXI_Button.Name = "Make_FXI_Button";
+            this.Make_FXI_Button.Size = new System.Drawing.Size(115, 23);
+            this.Make_FXI_Button.TabIndex = 7;
+            this.Make_FXI_Button.Text = "Make FXIs";
+            this.Make_FXI_Button.UseVisualStyleBackColor = true;
+            this.Make_FXI_Button.Click += new System.EventHandler(this.Make_FXI_Button_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(567, 450);
+            this.Controls.Add(this.Make_FXI_Button);
             this.Controls.Add(this.VideoButton);
             this.Controls.Add(this.StatusLabel);
             this.Controls.Add(this.GenerateButton);
@@ -165,6 +178,7 @@ namespace PGImageTool
         private System.Windows.Forms.Label StatusLabel;
         private System.Windows.Forms.Timer ClearStatustimer;
         private System.Windows.Forms.Button VideoButton;
+        private System.Windows.Forms.Button Make_FXI_Button;
     }
 }
 
